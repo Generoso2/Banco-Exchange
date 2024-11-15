@@ -1,17 +1,18 @@
+
 package model;
 
-public class Bitcoin extends Moedas implements Tarifacao {
-    public Bitcoin(double cotacaoAtual) {
+public class Ethereum extends Moedas implements Tarifacao {
+    public Ethereum(double cotacaoAtual) {
         super(cotacaoAtual);
     }
 
     @Override
     public double calcularTaxaCompra(double valor) {
-        return valor * 0.02;
+        return valor * 0.01;
     }
 
     @Override
     public double calcularTaxaVenda(double valor) {
-        return valor * 0.03;
+        return valor * 0.02;
     }
 }

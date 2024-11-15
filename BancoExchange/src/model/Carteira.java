@@ -2,75 +2,63 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Carteira {
     private double saldoReais;
-    private double saldoBitcoin;
-    private double saldoEthereum;
-    private double saldoRipple;
-    private List<String> extrato;
+    private Map<Class<? extends Moedas>, Double> saldosCripto = new HashMap<>();
+    private List<String> extrato = new ArrayList<>();
 
     public Carteira() {
-        this.saldoReais = 0.0;
-        this.saldoBitcoin = 0.0;
-        this.saldoEthereum = 0.0;
-        this.saldoRipple = 0.0;
-        this.extrato = new ArrayList<>();
-    }
-    public void adicionarSaldoReais(double valor) {
-        this.saldoReais += valor;
-        adicionarAoExtrato("Depósito: + " + valor + " reais");
+        saldosCripto.put(Bitcoin.class, 0.0);
+        saldosCripto.put(Ethereum.class, 0.0);
+        saldosCripto.put(Ripple.class, 0.0);
     }
 
-    public void sacarSaldoReais(double valor) {
-        if (valor <= this.saldoReais) {
-            this.saldoReais -= valor;
-            adicionarAoExtrato("Saque: - " + valor + " reais");
+    // Método de compra de criptomoedas
+    public boolean comprarCripto(Moedas moeda, double quantidade, Tarifacao tarifacao) {
+        double valorCompra = quantidade * moeda.getCotacaoAtual();
+        double taxa = tarifacao.calcularTaxaCompra(valorCompra);
+        double totalCompra = valorCompra + taxa;
+
+        if (saldoReais >= totalCompra) {
+            saldoReais -= totalCompra;
+            saldosCripto.put(moeda.getClass(), saldosCripto.get(moeda.getClass()) + quantidade);
+            extrato.add("Compra de " + quantidade + " " + moeda.getClass().getSimpleName() + " - Valor: " + valorCompra + " - Taxa: " + taxa);
+            return true;
         } else {
-            System.out.println("Saldo insuficiente para saque.");
+            return false; // Saldo insuficiente
         }
     }
 
-    public void adicionarSaldoBitcoin(double quantidade) {
-        this.saldoBitcoin += quantidade;
-        adicionarAoExtrato("Compra de Bitcoin: + " + quantidade + " BTC");
+    // Método de venda de criptomoedas
+    public boolean venderCripto(Moedas moeda, double quantidade, Tarifacao tarifacao) {
+        if (saldosCripto.get(moeda.getClass()) >= quantidade) {
+            double valorVenda = quantidade * moeda.getCotacaoAtual();
+            double taxa = tarifacao.calcularTaxaVenda(valorVenda);
+            double totalVenda = valorVenda - taxa;
+
+            saldoReais += totalVenda;
+            saldosCripto.put(moeda.getClass(), saldosCripto.get(moeda.getClass()) - quantidade);
+            extrato.add("Venda de " + quantidade + " " + moeda.getClass().getSimpleName() + " - Valor: " + valorVenda + " - Taxa: " + taxa);
+            return true;
+        } else {
+            return false; // Quantidade insuficiente para venda
+        }
     }
 
-    public void adicionarSaldoEthereum(double quantidade) {
-        this.saldoEthereum += quantidade;
-        adicionarAoExtrato("Compra de Ethereum: + " + quantidade + " ETH");
+    // Método para consultar o saldo
+    public String consultarSaldo() {
+        return "Saldo em Reais: " + saldoReais + "\n" +
+               "Saldo Bitcoin: " + saldosCripto.get(Bitcoin.class) + "\n" +
+               "Saldo Ethereum: " + saldosCripto.get(Ethereum.class) + "\n" +
+               "Saldo Ripple: " + saldosCripto.get(Ripple.class);
     }
 
-    public void adicionarSaldoRipple(double quantidade) {
-        this.saldoRipple += quantidade;
-        adicionarAoExtrato("Compra de Ripple: + " + quantidade + " XRP");
-    }
-
-    // Método para adicionar uma entrada ao extrato
-    private void adicionarAoExtrato(String operacao) {
-        extrato.add(operacao);
-    }
-
-    // Getters para os saldos
-    public double getSaldoReais() {
-        return saldoReais;
-    }
-
-    public double getSaldoBitcoin() {
-        return saldoBitcoin;
-    }
-
-    public double getSaldoEthereum() {
-        return saldoEthereum;
-    }
-
-    public double getSaldoRipple() {
-        return saldoRipple;
-    }
-
-    public List<String> getExtrato() {
-        return extrato;
+    // Método para consultar o extrato
+    public List<String> consultarExtrato() {
+        return new ArrayList<>(extrato);
     }
 }
-

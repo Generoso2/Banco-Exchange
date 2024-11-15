@@ -1,8 +1,18 @@
 
 package model;
 
-public class Ripple extends Criptomoeda{
-    public Ripple(double cotacaoInicial) {
-        super("Ripple", 0.01, 0.01, cotacaoInicial);
+public class Ripple extends Moedas implements Tarifacao {
+    public Ripple(double cotacaoAtual) {
+        super(cotacaoAtual);
+    }
+
+    @Override
+    public double calcularTaxaCompra(double valor) {
+        return valor * 0.01;
+    }
+
+    @Override
+    public double calcularTaxaVenda(double valor) {
+        return valor * 0.01;
     }
 }

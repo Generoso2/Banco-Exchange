@@ -2,48 +2,33 @@
 package model;
 
 public class Usuario {
-    private String nome;
+    private int id;
     private String cpf;
-    private String senha;
+    private String senha; 
     private Carteira carteira;
 
-    public Usuario(String nome, String cpf, String senha) {
-        this.nome = nome;
+    // Construtor
+    public Usuario(int id, String cpf, String senha) {
+        this.id = id;
         this.cpf = cpf;
         this.senha = senha;
         this.carteira = new Carteira();
     }
 
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
+    // Getters e Setters
+    public int getId() {
+        return id;
     }
 
     public String getCpf() {
         return cpf;
     }
 
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
     public String getSenha() {
         return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
     }
 
     public Carteira getCarteira() {
         return carteira;
     }
-
-    public void setCarteira(Carteira carteira) {
-        this.carteira = carteira;
-    }
-    
 }

@@ -1,18 +1,7 @@
 
 package view;
 
-import java.sql.Connection;      // Para trabalhar com a conexão ao banco de dados
-import java.sql.PreparedStatement; // Para preparar e executar instruções SQL
-import java.sql.ResultSet;       // Para armazenar e processar os resultados da consulta SQL
-import java.sql.SQLException;    // Para lidar com exceções SQL
 import javax.swing.JOptionPane;
-import DAO.DatabaseConnection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.*;
-import model.Usuario;
-import model.Carteira;
-import view.MenuFrame;
 import controller.LoginControl;
 
 public class LoginFrame extends javax.swing.JFrame {

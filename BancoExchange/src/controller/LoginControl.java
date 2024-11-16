@@ -1,3 +1,4 @@
+
 package controller;
 
 import java.sql.Connection;
@@ -8,12 +9,18 @@ import java.sql.SQLException;
 import DAO.DatabaseConnection;
 import view.LoginFrame;
 import view.MenuFrame;
+import model.Investidor;
+import model.SessaoUsuario;
+import service.InvestidorService;
 
 public class LoginControl {
     LoginFrame view;
+    private final InvestidorService investidorService;
+
 
     public LoginControl(LoginFrame view) {
         this.view = view;
+        this.investidorService = new InvestidorService();
     }
 
     public void fazerLogin() {
@@ -25,23 +32,20 @@ public class LoginControl {
             return;
         }
 
-        try (Connection connection = DatabaseConnection.connect()) {
-            String sql = "SELECT * FROM investidores WHERE cpf = ? AND senha = ?";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, cpf);
-            stmt.setString(2, senha);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                view.showMessage("Login bem-sucedido!");
-                navegarParaMenu();
-            } else {
-                view.showMessage("CPF ou senha incorretos.");
-            }
-
-        } catch (SQLException e) {
-            view.showMessage("Erro ao realizar login: " + e.getMessage());
+        // Autenticar usuário
+        boolean autenticado = investidorService.autenticar(cpf, senha);
+        if (!autenticado) {
+            view.showMessage("CPF ou senha incorretos.");
+            return;
         }
+
+        // Buscar o investidor e salvar na sessão
+        Investidor investidor = investidorService.buscarInvestidorPorCpf(cpf);
+        SessaoUsuario.setInvestidorLogado(investidor);
+
+        // Navegar para o menu
+        view.showMessage("Login bem-sucedido!");
+        navegarParaMenu();
     }
 
     public void navegarParaMenu() {

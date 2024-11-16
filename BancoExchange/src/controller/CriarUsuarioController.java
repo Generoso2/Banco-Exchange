@@ -1,4 +1,3 @@
-
 package controller;
 
 import java.sql.Connection;
@@ -37,14 +36,21 @@ public class CriarUsuarioController {
         }
 
         try (Connection connection = DatabaseConnection.connect()) {
-            String sql = "INSERT INTO investidores (nome, senha, cpf) VALUES (?, ?, ?)";
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setString(1, nome);
-            stmt.setString(2, senha);
-            stmt.setString(3, cpf);
+            // Insere o investidor na tabela
+            String sqlInvestidor = "INSERT INTO investidores (nome, senha, cpf) VALUES (?, ?, ?)";
+            PreparedStatement stmtInvestidor = connection.prepareStatement(sqlInvestidor);
+            stmtInvestidor.setString(1, nome);
+            stmtInvestidor.setString(2, senha);
+            stmtInvestidor.setString(3, cpf);
+            stmtInvestidor.executeUpdate();
 
-            stmt.executeUpdate();
-            view.showMessage("Usuário criado com sucesso!");
+            // Insere a carteira associada ao investidor
+            String sqlCarteira = "INSERT INTO carteiras (cpf_investidor) VALUES (?)";
+            PreparedStatement stmtCarteira = connection.prepareStatement(sqlCarteira);
+            stmtCarteira.setString(1, cpf);
+            stmtCarteira.executeUpdate();
+
+            view.showMessage("Usuário e carteira criados com sucesso!");
             navegarParaMenu();
 
         } catch (SQLException e) {

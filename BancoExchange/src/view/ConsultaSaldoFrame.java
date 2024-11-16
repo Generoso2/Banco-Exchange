@@ -2,6 +2,8 @@
 package view;
 
 import controller.ConsultaSaldoFramecontroller;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 
 public class ConsultaSaldoFrame extends javax.swing.JFrame {
     
@@ -11,6 +13,17 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
         this.c = new ConsultaSaldoFramecontroller(this);
         initComponents();
 
+    }
+    
+
+    public char[] getPassword() {
+        return password.getPassword();
+    }
+    public void exibirMensagemErro(String mensagem) {
+        JOptionPane.showMessageDialog(this, mensagem, "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+    public void exibirSaldo(String saldo) {
+        saldoTextArea.setText(saldo);
     }
 
 
@@ -27,9 +40,9 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        saldoArea = new javax.swing.JTextArea();
+        saldoTextArea = new javax.swing.JTextArea();
         jLabel2 = new javax.swing.JLabel();
-        jPasswordField1 = new javax.swing.JPasswordField();
+        password = new javax.swing.JPasswordField();
         jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -43,11 +56,17 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
             }
         });
 
-        saldoArea.setColumns(20);
-        saldoArea.setRows(5);
-        jScrollPane1.setViewportView(saldoArea);
+        saldoTextArea.setColumns(20);
+        saldoTextArea.setRows(5);
+        jScrollPane1.setViewportView(saldoTextArea);
 
         jLabel2.setText("Digite sua senha, para que seu saldo seja mostrado.");
+
+        password.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                passwordActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("Voltar ao menu");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
@@ -81,7 +100,7 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(115, 115, 115))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(password, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(170, 170, 170))))
         );
         layout.setVerticalGroup(
@@ -90,7 +109,7 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
-                .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -106,12 +125,16 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        
+        c.consultarSaldo();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         c.voltarMenu();
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void passwordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passwordActionPerformed
+
+    }//GEN-LAST:event_passwordActionPerformed
 
     /**
      * @param args the command line arguments
@@ -153,8 +176,8 @@ public class ConsultaSaldoFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea saldoArea;
+    private javax.swing.JPasswordField password;
+    private javax.swing.JTextArea saldoTextArea;
     // End of variables declaration//GEN-END:variables
 }

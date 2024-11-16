@@ -3,7 +3,7 @@ package controller;
 import view.MenuFrame;
 import view.ConsultaSaldoFrame;
 import view.ConsultaExtratoFrame;
-import view.SaqueDepositoFrame;
+import view.DepositoFrame;
 import view.CriptoFrame;
 import view.AtualizarCotacaoFrame;
 import view.AbrindoFrame;
@@ -29,7 +29,7 @@ public class MenuController {
 
     public void sacarDepositar() {
         view.dispose();
-        SaqueDepositoFrame saqueDeposito = new SaqueDepositoFrame();
+        DepositoFrame saqueDeposito = new DepositoFrame();
         saqueDeposito.setVisible(true);
     }
 

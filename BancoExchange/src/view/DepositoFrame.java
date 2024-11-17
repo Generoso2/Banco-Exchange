@@ -2,9 +2,6 @@ package view;
 
 import controller.DepositoFrameController;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import model.Investidor;
 
 public class DepositoFrame extends javax.swing.JFrame {
     

@@ -99,7 +99,7 @@ public class CarteiraService {
 
         return investidor.getCarteira().consultarSaldo();
     }
-
+    //Cripto
     public boolean comprarCriptomoeda(String cpf, Moedas moeda, double quantidade) {
         // Sincronizar carteira com o banco
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
@@ -110,8 +110,11 @@ public class CarteiraService {
 
         Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
 
-        // Calcular o custo total da compra (cotação * quantidade + taxa)
-        double valorCompra = quantidade * moeda.getCotacaoAtual();
+        // Calcular o custo total da compra
+        double cotacaoAtual = carteiraDAO.buscarCotacao(moeda.getClass().getSimpleName());
+        moeda.setCotacaoAtual(cotacaoAtual);
+
+        double valorCompra = quantidade * cotacaoAtual;
         double taxa = ((Tarifacao) moeda).calcularTaxaCompra(valorCompra);
         double totalCompra = valorCompra + taxa;
 
@@ -131,7 +134,7 @@ public class CarteiraService {
         carteiraDAO.atualizarSaldoReais(-totalCompra, cpf);
         carteiraDAO.atualizarSaldoCripto(quantidade, moeda.getClass(), cpf);
 
-        // Registrar transação no banco
+        // Registrar a transação no extrato
         carteiraDAO.registrarTransacao(
             "Compra de " + quantidade + " " + moeda.getClass().getSimpleName() +
             " - Total: R$ " + totalCompra + " (Taxa: R$ " + taxa + ")", cpf
@@ -141,23 +144,46 @@ public class CarteiraService {
     }
 
     public boolean venderCriptomoeda(String cpf, Moedas moeda, double quantidade) {
+        // Sincronizar carteira com o banco
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
         if (investidor == null) {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
+        SessaoUsuario.getInvestidorLogado().setCarteira(investidor.getCarteira());
 
-        Carteira carteira = investidor.getCarteira();
-        if (!(moeda instanceof Tarifacao)) {
-            throw new IllegalArgumentException("A moeda não suporta tarifação.");
-        }
-        boolean sucesso = carteira.venderCripto(moeda, quantidade, (Tarifacao)moeda);
-        if (sucesso) {
-            carteiraDAO.atualizarSaldoReais(carteira.getSaldoReais(), cpf);
-            carteiraDAO.registrarTransacao("Venda de " + quantidade + " " + moeda.getClass().getSimpleName(), cpf);
+        Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
+
+        // Verificar quantidade disponível
+        double quantidadeDisponivel = carteira.getSaldosCripto().get(moeda.getClass());
+        if (quantidadeDisponivel < quantidade) {
+            return false; // Quantidade insuficiente
         }
 
-        return sucesso;
+        // Calcular o valor da venda
+        double cotacaoAtual = carteiraDAO.buscarCotacao(moeda.getClass().getSimpleName());
+        moeda.setCotacaoAtual(cotacaoAtual);
+
+        double valorVenda = quantidade * cotacaoAtual;
+        double taxa = ((Tarifacao) moeda).calcularTaxaVenda(valorVenda);
+        double totalVenda = valorVenda - taxa;
+
+        // Atualizar os saldos
+        carteira.setSaldoReais(carteira.getSaldoReais() + totalVenda);
+        carteira.getSaldosCripto().put(moeda.getClass(), quantidadeDisponivel - quantidade);
+
+        // Atualizar dados no banco
+        carteiraDAO.atualizarSaldoReais(totalVenda, cpf);
+        carteiraDAO.atualizarSaldoCripto(-quantidade, moeda.getClass(), cpf);
+
+        // Registrar a transação no extrato
+        carteiraDAO.registrarTransacao(
+            "Venda de " + quantidade + " " + moeda.getClass().getSimpleName() +
+            " - Total: R$ " + totalVenda + " (Taxa: R$ " + taxa + ")", cpf
+        );
+
+        return true;
     }
+    
     public List<String> consultarExtrato(String cpf) {
         return carteiraDAO.buscarExtrato(cpf); // O DAO lida com a persistência
     }

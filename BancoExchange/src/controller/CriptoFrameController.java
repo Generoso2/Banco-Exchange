@@ -80,4 +80,56 @@ public class CriptoFrameController {
             view.exibirMensagemErro("Erro ao realizar a compra: " + e.getMessage());
         }
     }
+    
+    public void realizarVenda() {
+        String senha = new String(view.getPassword());
+        String quantidadeTexto = view.getQuantidade();
+        String cpfLogado = SessaoUsuario.getInvestidorLogado().getCpf();
+
+        // Validar senha
+        boolean autentica = investidorService.autenticar(cpfLogado, senha);
+        if (!autentica) {
+            view.exibirMensagemErro("Senha incorreta. Tente novamente.");
+            return;
+        }
+
+        // Validar a criptomoeda selecionada
+        Moedas moeda;
+        if (view.isBitcoinSelecionado()) {
+            moeda = new Bitcoin(0); // Cotação será buscada do banco
+        } else if (view.isEthereumSelecionado()) {
+            moeda = new Ethereum(0);
+        } else if (view.isRippleSelecionado()) {
+            moeda = new Ripple(0);
+        } else {
+            view.exibirMensagemErro("Selecione uma criptomoeda.");
+            return;
+        }
+
+        // Validar a quantidade
+        double quantidade;
+        try {
+            quantidade = Double.parseDouble(quantidadeTexto);
+            if (quantidade <= 0) {
+                view.exibirMensagemErro("A quantidade deve ser maior que zero.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            view.exibirMensagemErro("Por favor, insira um valor numérico válido.");
+            return;
+        }
+
+        try {
+            // Realizar a venda
+            boolean sucesso = carteiraService.venderCriptomoeda(cpfLogado, moeda, quantidade);
+
+            if (!sucesso) {
+                view.exibirMensagemErro("Quantidade insuficiente da criptomoeda para realizar a venda.");
+            } else {
+                view.exibirMensagemSucesso("Venda realizada com sucesso! Consulte seu saldo no menu de consulta.");
+            }
+        } catch (Exception e) {
+            view.exibirMensagemErro("Erro ao realizar a venda: " + e.getMessage());
+        }
+    }
 }

@@ -1,12 +1,6 @@
 
 package controller;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import DAO.DatabaseConnection;
 import view.LoginFrame;
 import view.MenuFrame;
 import model.Investidor;

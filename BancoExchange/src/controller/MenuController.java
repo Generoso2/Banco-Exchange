@@ -7,6 +7,7 @@ import view.DepositoFrame;
 import view.CriptoFrame;
 import view.AtualizarCotacaoFrame;
 import view.AbrindoFrame;
+import view.SaqueFrame;
 
 public class MenuController {
     MenuFrame view;
@@ -27,10 +28,16 @@ public class MenuController {
         consultaExtrato.setVisible(true);
     }
 
-    public void sacarDepositar() {
+    public void Depositar() {
         view.dispose();
-        DepositoFrame saqueDeposito = new DepositoFrame();
-        saqueDeposito.setVisible(true);
+        DepositoFrame Deposito = new DepositoFrame();
+        Deposito.setVisible(true);
+    }
+    
+    public void Saque() {
+        view.dispose();
+        SaqueFrame Saque = new SaqueFrame();
+        Saque.setVisible(true);
     }
 
     public void gerenciarCripto() {

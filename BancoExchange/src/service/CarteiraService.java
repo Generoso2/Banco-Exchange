@@ -35,38 +35,45 @@ public class CarteiraService {
             throw new IllegalArgumentException("O valor do depósito deve ser maior que zero.");
         }
 
+        // Sincronizar o saldo com o banco antes de fazer o depósito
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
         if (investidor == null) {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
+        SessaoUsuario.getInvestidorLogado().setCarteira(investidor.getCarteira());
 
-        Carteira carteira = investidor.getCarteira();
+        Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
+
+        // Calcular o novo saldo
         double novoSaldo = carteira.getSaldoReais() + valor;
+
+        // Atualizar no banco
+        carteiraDAO.atualizarSaldoReais(valor, cpf);
+
+        // Atualizar na sessão
         carteira.setSaldoReais(novoSaldo);
 
-        // Atualizar saldo no banco de dados
-        carteiraDAO.atualizarSaldoReais(novoSaldo, cpf);
-
-        // Registrar transação no extrato
+        // Registrar a transação no banco
         carteiraDAO.registrarTransacao("Depósito de R$ " + valor, cpf);
-
-        // Atualizar o saldo do investidor na sessão
-        SessaoUsuario.getInvestidorLogado().getCarteira().setSaldoReais(novoSaldo);
 
         return novoSaldo;
     }
 
     public boolean sacar(String cpf, double valor) {
         if (valor <= 0) {
-            return false; // Saque inválido
+            throw new IllegalArgumentException("O valor do saque deve ser maior que zero.");
         }
 
+        // Sincronizar o saldo do investidor logado com o banco
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
         if (investidor == null) {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
+        SessaoUsuario.getInvestidorLogado().setCarteira(investidor.getCarteira());
 
-        Carteira carteira = investidor.getCarteira();
+        Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
+
+        // Validar saldo suficiente
         if (carteira.getSaldoReais() < valor) {
             return false; // Saldo insuficiente
         }
@@ -75,7 +82,9 @@ public class CarteiraService {
         carteira.setSaldoReais(novoSaldo);
 
         // Atualizar saldo no banco de dados
-        carteiraDAO.atualizarSaldoReais(novoSaldo, cpf);
+        carteiraDAO.atualizarSaldoReais(-valor, cpf);
+
+        // Registrar transação no extrato
         carteiraDAO.registrarTransacao("Saque de R$ " + valor, cpf);
 
         return true;

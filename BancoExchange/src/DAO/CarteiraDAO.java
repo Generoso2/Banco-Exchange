@@ -17,7 +17,7 @@ public class CarteiraDAO {
         String sql = "UPDATE carteiras SET saldo_reais = saldo_reais + ? WHERE cpf_investidor = ?";
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDouble(1, saldoAdicional); // Soma o saldo adicional
+            stmt.setDouble(1, saldoAdicional); // Soma apenas o valor adicional
             stmt.setString(2, cpf);
             stmt.executeUpdate();
         } catch (SQLException e) {

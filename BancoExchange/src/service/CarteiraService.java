@@ -8,6 +8,7 @@ import model.Investidor;
 import model.Moedas;
 import model.Tarifacao;
 import model.SessaoUsuario;
+import java.util.Random;
 
 public class CarteiraService {
     private final CarteiraDAO carteiraDAO;
@@ -35,38 +36,45 @@ public class CarteiraService {
             throw new IllegalArgumentException("O valor do depósito deve ser maior que zero.");
         }
 
+        // Sincronizar o saldo com o banco antes de fazer o depósito
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
         if (investidor == null) {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
+        SessaoUsuario.getInvestidorLogado().setCarteira(investidor.getCarteira());
 
-        Carteira carteira = investidor.getCarteira();
+        Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
+
+        // Calcular o novo saldo
         double novoSaldo = carteira.getSaldoReais() + valor;
+
+        // Atualizar no banco
+        carteiraDAO.atualizarSaldoReais(valor, cpf);
+
+        // Atualizar na sessão
         carteira.setSaldoReais(novoSaldo);
 
-        // Atualizar saldo no banco de dados
-        carteiraDAO.atualizarSaldoReais(novoSaldo, cpf);
-
-        // Registrar transação no extrato
+        // Registrar a transação no banco
         carteiraDAO.registrarTransacao("Depósito de R$ " + valor, cpf);
-
-        // Atualizar o saldo do investidor na sessão
-        SessaoUsuario.getInvestidorLogado().getCarteira().setSaldoReais(novoSaldo);
 
         return novoSaldo;
     }
 
     public boolean sacar(String cpf, double valor) {
         if (valor <= 0) {
-            return false; // Saque inválido
+            throw new IllegalArgumentException("O valor do saque deve ser maior que zero.");
         }
 
+        // Sincronizar o saldo do investidor logado com o banco
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
         if (investidor == null) {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
+        SessaoUsuario.getInvestidorLogado().setCarteira(investidor.getCarteira());
 
-        Carteira carteira = investidor.getCarteira();
+        Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
+
+        // Validar saldo suficiente
         if (carteira.getSaldoReais() < valor) {
             return false; // Saldo insuficiente
         }
@@ -75,7 +83,9 @@ public class CarteiraService {
         carteira.setSaldoReais(novoSaldo);
 
         // Atualizar saldo no banco de dados
-        carteiraDAO.atualizarSaldoReais(novoSaldo, cpf);
+        carteiraDAO.atualizarSaldoReais(-valor, cpf);
+
+        // Registrar transação no extrato
         carteiraDAO.registrarTransacao("Saque de R$ " + valor, cpf);
 
         return true;
@@ -91,25 +101,43 @@ public class CarteiraService {
     }
 
     public boolean comprarCriptomoeda(String cpf, Moedas moeda, double quantidade) {
+        // Sincronizar carteira com o banco
         Investidor investidor = investidorDAO.buscarPorCpf(cpf);
         if (investidor == null) {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
+        SessaoUsuario.getInvestidorLogado().setCarteira(investidor.getCarteira());
 
-        Carteira carteira = investidor.getCarteira();
+        Carteira carteira = SessaoUsuario.getInvestidorLogado().getCarteira();
 
-        // Confirma que a moeda implementa Tarifacao
-        if (!(moeda instanceof Tarifacao)) {
-            throw new IllegalArgumentException("A moeda não suporta tarifação.");
+        // Calcular o custo total da compra (cotação * quantidade + taxa)
+        double valorCompra = quantidade * moeda.getCotacaoAtual();
+        double taxa = ((Tarifacao) moeda).calcularTaxaCompra(valorCompra);
+        double totalCompra = valorCompra + taxa;
+
+        // Validar saldo suficiente
+        if (carteira.getSaldoReais() < totalCompra) {
+            return false; // Saldo insuficiente
         }
 
-        boolean sucesso = carteira.comprarCripto(moeda, quantidade, (Tarifacao) moeda);
-        if (sucesso) {
-            carteiraDAO.atualizarSaldoReais(carteira.getSaldoReais(), cpf);
-            carteiraDAO.registrarTransacao("Compra de " + quantidade + " " + moeda.getClass().getSimpleName(), cpf);
-        }
+        // Atualizar os saldos
+        carteira.setSaldoReais(carteira.getSaldoReais() - totalCompra);
+        carteira.getSaldosCripto().put(
+            moeda.getClass(),
+            carteira.getSaldosCripto().get(moeda.getClass()) + quantidade
+        );
 
-        return sucesso;
+        // Atualizar dados no banco
+        carteiraDAO.atualizarSaldoReais(-totalCompra, cpf);
+        carteiraDAO.atualizarSaldoCripto(quantidade, moeda.getClass(), cpf);
+
+        // Registrar transação no banco
+        carteiraDAO.registrarTransacao(
+            "Compra de " + quantidade + " " + moeda.getClass().getSimpleName() +
+            " - Total: R$ " + totalCompra + " (Taxa: R$ " + taxa + ")", cpf
+        );
+
+        return true;
     }
 
     public boolean venderCriptomoeda(String cpf, Moedas moeda, double quantidade) {
@@ -139,5 +167,31 @@ public class CarteiraService {
             throw new IllegalArgumentException("Investidor não encontrado.");
         }
         return investidor.getCarteira();
+    }
+    public void atualizarCotacoes() {
+        // Buscar as cotações atuais do banco
+        double cotacaoBitcoin = carteiraDAO.buscarCotacao("Bitcoin");
+        double cotacaoEthereum = carteiraDAO.buscarCotacao("Ethereum");
+        double cotacaoRipple = carteiraDAO.buscarCotacao("Ripple");
+
+        // Atualizar cotações com variação aleatória de -5% a +5%
+        cotacaoBitcoin = calcularVariacao(cotacaoBitcoin);
+        cotacaoEthereum = calcularVariacao(cotacaoEthereum);
+        cotacaoRipple = calcularVariacao(cotacaoRipple);
+
+        // Salvar as novas cotações no banco
+        carteiraDAO.atualizarCotacao("Bitcoin", cotacaoBitcoin);
+        carteiraDAO.atualizarCotacao("Ethereum", cotacaoEthereum);
+        carteiraDAO.atualizarCotacao("Ripple", cotacaoRipple);
+    }
+    public double buscarCotacao(String criptomoeda) {
+        return carteiraDAO.buscarCotacao(criptomoeda);
+    }
+    
+
+    private double calcularVariacao(double cotacaoAtual) {
+        Random random = new Random();
+        double variacao = (random.nextDouble() * 10) - 5; // Gera variação entre -5% e +5%
+        return cotacaoAtual + (cotacaoAtual * variacao / 100);
     }
 }

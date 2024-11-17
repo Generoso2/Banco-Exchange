@@ -10,6 +10,7 @@ import java.util.List;
 import model.Carteira;
 import model.Bitcoin;
 import model.Ethereum;
+import model.Moedas;
 import model.Ripple;
 
 public class CarteiraDAO {
@@ -17,13 +18,35 @@ public class CarteiraDAO {
         String sql = "UPDATE carteiras SET saldo_reais = saldo_reais + ? WHERE cpf_investidor = ?";
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDouble(1, saldoAdicional); // Soma o saldo adicional
+            stmt.setDouble(1, saldoAdicional); // Soma apenas o valor adicional
             stmt.setString(2, cpf);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+    
+    public void atualizarSaldoCripto(double quantidade, Class<? extends Moedas> moeda, String cpf) {
+        String coluna = ""; // Determina a coluna no banco com base na classe da moeda
+        if (moeda.equals(Bitcoin.class)) {
+            coluna = "saldo_bitcoin";
+        } else if (moeda.equals(Ethereum.class)) {
+            coluna = "saldo_ethereum";
+        } else if (moeda.equals(Ripple.class)) {
+            coluna = "saldo_ripple";
+        }
+
+        String sql = "UPDATE carteiras SET " + coluna + " = " + coluna + " + ? WHERE cpf_investidor = ?";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, quantidade);
+            stmt.setString(2, cpf);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public Carteira buscarCarteiraPorCpf(String cpf) {
         String sql = "SELECT saldo_reais, saldo_bitcoin, saldo_ethereum, saldo_ripple FROM carteiras WHERE cpf_investidor = ?";
         try (Connection conn = DatabaseConnection.connect();
@@ -74,6 +97,47 @@ public class CarteiraDAO {
             e.printStackTrace();
         }
         return extrato;
+    }
+    
+    
+    //Cotação
+    public double buscarCotacao(String criptomoeda) {
+        String coluna = determinarColunaCotacao(criptomoeda);
+        String sql = "SELECT " + coluna + " FROM cotacoes";
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble(coluna);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0.0; // Retorna 0.0 se não encontrar a cotação
+    }
+
+    public void atualizarCotacao(String criptomoeda, double novaCotacao) {
+        String coluna = determinarColunaCotacao(criptomoeda);
+        String sql = "UPDATE cotacoes SET " + coluna + " = ?";
+
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, novaCotacao);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String determinarColunaCotacao(String criptomoeda) {
+        switch (criptomoeda) {
+            case "Bitcoin": return "cotacao_bitcoin";
+            case "Ethereum": return "cotacao_ethereum";
+            case "Ripple": return "cotacao_ripple";
+            default: throw new IllegalArgumentException("Criptomoeda desconhecida: " + criptomoeda);
+        }
     }
     
 }

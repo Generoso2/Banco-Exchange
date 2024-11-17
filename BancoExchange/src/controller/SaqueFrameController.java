@@ -1,13 +1,13 @@
 
 package controller;
 
-import view.SaqueDepositoFrame;
+import view.SaqueFrame;
 import view.MenuFrame;
 
-public class SqueDepositoFrameController {
-    SaqueDepositoFrame view;
+public class SaqueFrameController {
+    SaqueFrame view;
 
-    public SqueDepositoFrameController(SaqueDepositoFrame view) {
+    public SaqueFrameController(SaqueFrame view) {
         this.view = view;
     }
 
@@ -19,3 +19,4 @@ public class SqueDepositoFrameController {
 
     // Adicione aqui métodos para processar saques e depósitos
 }
+    

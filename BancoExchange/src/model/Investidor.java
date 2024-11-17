@@ -1,7 +1,15 @@
 
 package model;
 
-public class Investidor {
+import model.Pessoa;
+
+public class Investidor extends Pessoa{
+    
+    public Investidor(String nome, String cpf, String senha) {
+        super(nome, cpf);
+        this.senha = senha;
+        this.carteira = new Carteira();
+    }
     private String senha;
     private Carteira carteira;
 

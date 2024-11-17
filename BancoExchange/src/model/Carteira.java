@@ -17,6 +17,14 @@ public class Carteira {
         saldosCripto.put(Ripple.class, 0.0);
     }
 
+    
+    
+    public Map<Class<? extends Moedas>, Double> getSaldosCripto() {
+        return saldosCripto;
+    }
+    
+
+
     // Método de compra de criptomoedas
     public boolean comprarCripto(Moedas moeda, double quantidade, Tarifacao tarifacao) {
         double valorCompra = quantidade * moeda.getCotacaoAtual();
@@ -61,4 +69,13 @@ public class Carteira {
     public List<String> consultarExtrato() {
         return new ArrayList<>(extrato);
     }
+
+    public double getSaldoReais() {
+        return saldoReais;
+    }
+
+    public void setSaldoReais(double saldoReais) {
+        this.saldoReais = saldoReais;
+    }
+    
 }

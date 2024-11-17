@@ -5,11 +5,6 @@
 package view;
 
 import controller.CriptoFrameController;
-import java.sql.ResultSet;
-import DAO.DatabaseConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import javax.swing.JOptionPane;
 
 public class CriptoFrame extends javax.swing.JFrame {
@@ -102,6 +97,11 @@ public class CriptoFrame extends javax.swing.JFrame {
         });
 
         jButton3.setText("Vender");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Digite sua senha para realizar a operação.");
 
@@ -182,6 +182,10 @@ public class CriptoFrame extends javax.swing.JFrame {
     private void radioButtonBitcoinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonBitcoinActionPerformed
         
     }//GEN-LAST:event_radioButtonBitcoinActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        c.realizarVenda();
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
